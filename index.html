@@ -573,10 +573,25 @@
     };
 
     // Load and render users from backend API (auto-syncs with Discord)
+    async function getUsers() {
+      const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000/api/users'
+        : '/api/users';
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`API responded with ${response.status}`);
+        return await response.json();
+      } catch (error) {
+        const response = await fetch('users.json');
+        if (!response.ok) throw error;
+        return await response.json();
+      }
+    }
+
     async function loadUsers() {
       try {
-        const response = await fetch('http://localhost:3000/api/users');
-        const users = await response.json();
+        const users = await getUsers();
         const teamGrid = document.getElementById('team-grid');
         
         // Clear existing cards
@@ -594,10 +609,10 @@
             <div class="avatar-wrapper">
               <div class="avatar-glow"></div>
               <img class="avatar" src="${user.avatar}" alt="${user.name}">
-              <div class="status-dot" style="background-color: ${user.statusColor || '#747f8d'}"></div>
+              <div class="status-dot" style="background-color: ${user.statusColor || statusColors.online}"></div>
             </div>
             <div class="username">${user.name}</div>
-            <div class="custom-status">"${user.customStatus}"</div>
+            <div class="custom-status">"${user.customStatus || 'No status set'}"</div>
           `;
           
           teamGrid.appendChild(card);
