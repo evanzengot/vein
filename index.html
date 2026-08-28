@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vein</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=UnifrakturCook:wght@700&display=swap');
+
+    :root {
+      --bg: #000000;
+      --card-bg: rgba(15, 15, 20, 0.5);
+      --border: rgba(255, 255, 255, 0.08);
+      --blurple: #eb459e;
+      --pink: #eb459e;
+      --online: #23a55a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: #ffffff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body.is-locked {
+      overflow: hidden;
+    }
+
+    .unlock-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 10;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+
+    .unlock-screen.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .unlock-panel {
+      width: min(100%, 440px);
+      padding: 2rem;
+      text-align: center;
+      background: rgba(15, 15, 20, 0.78);
+      border: 1px solid rgba(235, 69, 158, 0.35);
+      border-radius: 20px;
+      box-shadow: 0 0 60px rgba(235, 69, 158, 0.12);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    .unlock-label {
+      display: block;
+      margin-bottom: 1rem;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .unlock-track {
+      position: relative;
+      height: 54px;
+      padding: 5px;
+      border: 1px solid rgba(235, 69, 158, 0.35);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .unlock-range {
+      width: 100%;
+      height: 42px;
+      margin: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: grab;
+      background: transparent;
+    }
+
+    .unlock-range:active {
+      cursor: grabbing;
+    }
+
+    .unlock-range::-webkit-slider-runnable-track {
+      height: 42px;
+      background: linear-gradient(90deg, rgba(235, 69, 158, 0.3) var(--progress, 0%), transparent var(--progress, 0%));
+      border-radius: 999px;
+    }
+
+    .unlock-range::-moz-range-track {
+      height: 42px;
+      background: linear-gradient(90deg, rgba(235, 69, 158, 0.3) var(--progress, 0%), transparent var(--progress, 0%));
+      border-radius: 999px;
+    }
+
+    .unlock-range::-webkit-slider-thumb {
+      width: 42px;
+      height: 42px;
+      margin-top: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 18px rgba(235, 69, 158, 0.7);
+    }
+
+    .unlock-range::-moz-range-thumb {
+      width: 38px;
+      height: 38px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 18px rgba(235, 69, 158, 0.7);
+    }
+
+    .unlock-hint {
+      margin-top: 0.85rem;
+      color: #949ba4;
+      font-size: 0.8rem;
+    }
+
+    .site-content {
+      width: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(18px);
+      transition: opacity 0.8s ease, visibility 0.8s ease, transform 0.8s ease;
+    }
+
+    .site-content.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    /* Ambient Animated Glow Orbs */
+    .bg-glow {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(235, 69, 158, 0.35), transparent 70%);
+      top: 10%;
+      left: 10%;
+      filter: blur(80px);
+      animation: floatGlow 10s infinite alternate ease-in-out;
+      pointer-events: none;
+    }
+
+    .bg-glow-2 {
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(235, 69, 158, 0.25), transparent 70%);
+      bottom: 10%;
+      right: 10%;
+      filter: blur(80px);
+      animation: floatGlow 12s infinite alternate-reverse ease-in-out;
+      pointer-events: none;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, -30px) scale(1.15); }
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      z-index: 1;
+      animation: fadeInDown 0.8s ease-out forwards;
+    }
+
+    header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      font-family: 'UnifrakturCook', cursive;
+      background: linear-gradient(135deg, #ffffff 0%, var(--pink) 100%);
+        background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+      min-height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .typing-text {
+      position: relative;
+      display: inline-block;
+    }
+
+    .typing-text::after {
+      content: '|';
+      position: absolute;
+      right: -10px;
+      animation: blink 0.7s infinite;
+      color: var(--pink);
+    }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    @keyframes typewriter {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    header p {
+      color: #949ba4;
+      font-size: 1rem;
+    }
+
+    /* Card Grid */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 250px));
+      column-gap: clamp(1.5rem, 5vw, 4.5rem);
+      row-gap: 2.5rem;
+      justify-content: space-evenly;
+      width: 100%;
+      max-width: 1280px;
+      margin-inline: auto;
+      z-index: 1;
+      perspective: 1000px;
+    }
+
+    /* Styled Animated Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(25px) saturate(80%);
+      -webkit-backdrop-filter: blur(25px) saturate(80%);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transform-style: preserve-3d;
+      isolation: isolate;
+      transition: transform 0.1s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
+      opacity: 1;
+    }
+
+    .team-grid.is-revealing .card {
+      animation: fadeInUp 0.8s ease-out forwards;
+      opacity: 0;
+    }
+
+    .team-grid.is-revealing .card:nth-child(1) { animation-delay: 0.1s; }
+    .team-grid.is-revealing .card:nth-child(2) { animation-delay: 0.2s; }
+    .team-grid.is-revealing .card:nth-child(3) { animation-delay: 0.3s; }
+    .team-grid.is-revealing .card:nth-child(4) { animation-delay: 0.4s; }
+    .team-grid.is-revealing .card:nth-child(5) { animation-delay: 0.5s; }
+    .team-grid.is-revealing .card:nth-child(6) { animation-delay: 0.6s; }
+    .team-grid.is-revealing .card:nth-child(7) { animation-delay: 0.7s; }
+    .team-grid.is-revealing .card:nth-child(8) { animation-delay: 0.8s; }
+
+    .card:hover {
+      border-color: rgba(235, 69, 158, 0.6);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(235, 69, 158, 0.3);
+    }
+
+    /* Hover scenes */
+    .card::before,
+    .card::after {
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .card:hover::before,
+    .card:hover::after {
+      opacity: 1;
+    }
+
+    .effect-pentagram::before {
+      content: '▰━━➤     ◀━━▰';
+      width: 360px;
+      color: #171717;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 0.15rem;
+      transform: translate(-55px, 22px) rotate(-8deg);
+      animation: shootGuns 0.55s ease-in-out infinite alternate;
+    }
+
+    .effect-pentagram::after {
+      content: '▲ ▲ ▲';
+      inset: -74px -54px;
+      display: grid;
+      place-items: end center;
+      padding-bottom: 1.4rem;
+      color: #000000;
+      font-size: 2.3rem;
+      letter-spacing: 0.7rem;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 92%, 50% 71%, 21% 92%, 32% 57%, 2% 35%, 39% 35%);
+      background: rgba(0, 0, 0, 0.75);
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.95);
+      transform: rotate(0deg);
+      animation: spinPentagram 5s linear infinite;
+    }
+
+    .effect-pentagram:hover {
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(235, 69, 158, 0.3);
+    }
+
+    .floating-crosses {
+      position: absolute;
+      inset: -95px -80px;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0;
+      color: #ffffff;
+      font-family: Georgia, serif;
+      font-size: 2rem;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.75);
+      transition: opacity 0.35s ease;
+    }
+
+    .effect-pentagram:hover .floating-crosses {
+      opacity: 0.8;
+    }
+
+    .floating-cross {
+      position: absolute;
+      display: block;
+      transform: rotate(180deg);
+      animation: floatCross 2.8s ease-in-out infinite;
+    }
+
+    .cross-one { top: 8%; left: 8%; animation-delay: -0.4s; }
+    .cross-two { top: 55%; right: 4%; animation-delay: -1.5s; font-size: 1.5rem; }
+    .cross-three { bottom: 3%; left: 23%; animation-delay: -2.2s; font-size: 1.25rem; }
+
+    .effect-code::before {
+      content: 'ACCESS_GRANTED >_ 0101 0110';
+      width: 460px;
+      color: var(--pink);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.1rem;
+      text-shadow: 0 0 14px rgba(235, 69, 158, 0.95);
+      transform: translate(-105px, -86px);
+      animation: none;
+    }
+
+    .effect-code::after {
+      content: '';
+      inset: -42px;
+      border: 1px solid rgba(235, 69, 158, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 0 22px rgba(235, 69, 158, 0.75), inset 0 0 22px rgba(235, 69, 158, 0.4);
+      animation: none;
+    }
+
+    .effect-code:hover::before {
+      animation: codeAura 1.2s ease-in-out infinite alternate;
+    }
+
+    .effect-code:hover::after {
+      animation: pulseAura 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes shootGuns {
+      from { transform: translate(-55px, 22px) rotate(-8deg); }
+      to { transform: translate(-55px, 15px) rotate(-8deg) scale(1.06); }
+    }
+
+    @keyframes spinPentagram {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes floatCross {
+      0%, 100% { opacity: 0.15; transform: translateY(8px) rotate(180deg); }
+      50% { opacity: 1; transform: translateY(-18px) rotate(180deg); }
+    }
+
+    @keyframes codeAura {
+      from { transform: translate(-105px, -86px); opacity: 0.55; }
+      to { transform: translate(-105px, -94px); opacity: 1; }
+    }
+
+    @keyframes pulseAura {
+      from { transform: scale(0.9); opacity: 0.45; }
+      to { transform: scale(1.08); opacity: 1; }
+    }
+
+    /* Avatar Styling */
+    .avatar-wrapper {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      margin-bottom: 1rem;
+      transform: translateZ(25px);
+    }
+
+    .avatar-glow {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blurple), var(--pink));
+      filter: blur(6px);
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover .avatar-glow {
+      opacity: 1;
+      filter: blur(10px);
+    }
+
+    .avatar {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--bg);
+      z-index: 1;
+    }
+
+    .status-dot {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      background-color: var(--online);
+      border-radius: 50%;
+      border: 3px solid #08090c;
+      z-index: 2;
+    }
+
+    /* Info */
+    .username {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      transform: translateZ(20px);
+    }
+
+    .role-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.3rem 0.7rem;
+      border-radius: 12px;
+      background: rgba(235, 69, 158, 0.15);
+      color: #ff77c4;
+      border: 1px solid rgba(235, 69, 158, 0.3);
+      margin-bottom: 0.8rem;
+      transform: translateZ(15px);
+    }
+
+    .custom-status {
+      font-size: 0.85rem;
+      color: #949ba4;
+      line-height: 1.3;
+      transform: translateZ(10px);
+    }
+
+    /* Coding Animation */
+    .code-animation {
+      text-align: center;
+      margin-bottom: 2rem;
+      z-index: 1;
+      animation: fadeInDown 0.8s ease-out forwards;
+    }
+
+    .code-block {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--pink);
+      text-shadow: 0 0 10px rgba(235, 69, 158, 0.5);
+      white-space: pre;
+      line-height: 1.5;
+      letter-spacing: 0.05em;
+      max-width: 400px;
+    }
+
+    .code-block::after {
+      content: '█';
+      display: inline-block;
+      margin-left: 3px;
+      animation: codeBlink 0.7s infinite;
+      color: var(--pink);
+    }
+
+    @keyframes codeBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    /* Keyframe Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+  <audio id="background-music" src="background-music.mp3" loop preload="auto"></audio>
+
+  <div class="unlock-screen" id="unlock-screen">
+    <div class="unlock-panel">
+      <div class="code-animation" id="code-animation"></div>
+      <label class="unlock-label" for="unlock-range">Slide to unlock Vein</label>
+      <div class="unlock-track">
+        <input class="unlock-range" id="unlock-range" type="range" min="0" max="100" value="0" disabled aria-label="Slide to unlock the main viewing area">
+      </div>
+      <p class="unlock-hint">Complete the intro sequence to enter</p>
+    </div>
+  </div>
+
+  <main class="site-content" id="site-content">
+    <header>
+      <h1 id="title"></h1>
+      <p>Digital Collective</p>
+    </header>
+
+    <div class="team-grid" id="team-grid"></div>
+  </main>
+
+  <script>
+    // Status color mapping
+    const statusColors = {
+      'online': '#23a55a',
+      'idle': '#faa61a',
+      'dnd': '#f23f42',
+      'offline': '#747f8d'
+    };
+
+    // Load and render users from backend API (auto-syncs with Discord)
+    async function loadUsers() {
+      try {
+        const response = await fetch('http://localhost:3000/api/users');
+        const users = await response.json();
+        const teamGrid = document.getElementById('team-grid');
+        
+        // Clear existing cards
+        teamGrid.innerHTML = '';
+        
+        const effectClasses = ['effect-pentagram', '', '', 'effect-code', ''];
+
+        users.forEach((user, index) => {
+          const card = document.createElement('div');
+          card.className = `card ${effectClasses[index] || ''}`;
+          card.style.animationDelay = `${index * 0.1}s`;
+          
+          card.innerHTML = `
+            ${index === 0 ? '<div class="floating-crosses"><span class="floating-cross cross-one">†</span><span class="floating-cross cross-two">†</span><span class="floating-cross cross-three">†</span></div>' : ''}
+            <div class="avatar-wrapper">
+              <div class="avatar-glow"></div>
+              <img class="avatar" src="${user.avatar}" alt="${user.name}">
+              <div class="status-dot" style="background-color: ${user.statusColor || '#747f8d'}"></div>
+            </div>
+            <div class="username">${user.name}</div>
+            <div class="custom-status">"${user.customStatus}"</div>
+          `;
+          
+          teamGrid.appendChild(card);
+        });
+        
+        // Apply 3D tilt effect to newly created cards
+        attachTiltEffect();
+      } catch (error) {
+        console.error('Error loading users:', error);
+        // Fallback to offline message
+        document.getElementById('team-grid').innerHTML = '<p style="color: #949ba4; grid-column: 1/-1;">⚠️ Make sure the backend server is running (npm start)</p>';
+      }
+    }
+
+    // 3D Physics Tilt Effect
+    function attachTiltEffect() {
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          
+          const rotateX = ((y - centerY) / centerY) * -15;
+          const rotateY = ((x - centerX) / centerX) * 15;
+
+          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.04, 1.04, 1.04)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        });
+      });
+    }
+
+    // Typing animation for intro
+    const titleElement = document.getElementById('title');
+    const titleText = 'Vein';
+    let index = 0;
+
+    function typeTitle() {
+      if (index < titleText.length) {
+        titleElement.textContent += titleText.charAt(index);
+        index++;
+        setTimeout(typeTitle, 150);
+      } else {
+        const style = document.createElement('style');
+        style.textContent = '.typing-text::after { display: none; }';
+        document.head.appendChild(style);
+      }
+    }
+
+    // Coding animation
+    const codeSnippets = [
+      'const vein = await fetchTeam();',
+      'if (vein.connected === true) {',
+      '  render(vein.members);',
+      '}'
+    ];
+
+    let codeIndex = 0;
+    let charIndex = 0;
+    let currentCode = '';
+
+    function typeCode() {
+      const animDiv = document.getElementById('code-animation');
+      if (codeIndex < codeSnippets.length) {
+        const currentLine = codeSnippets[codeIndex];
+        if (charIndex < currentLine.length) {
+          currentCode += currentLine.charAt(charIndex);
+          charIndex++;
+          animDiv.innerHTML = `<div class="code-block">${currentCode}</div>`;
+          setTimeout(typeCode, 40);
+        } else {
+          currentCode += '\n';
+          codeIndex++;
+          charIndex = 0;
+          setTimeout(typeCode, 300);
+        }
+      } else {
+        unlockRange.disabled = false;
+        document.querySelector('.unlock-hint').textContent = 'Intro complete. Slide to enter';
+      }
+    }
+
+    const unlockScreen = document.getElementById('unlock-screen');
+    const unlockRange = document.getElementById('unlock-range');
+    const siteContent = document.getElementById('site-content');
+    const teamGrid = document.getElementById('team-grid');
+    const backgroundMusic = document.getElementById('background-music');
+    backgroundMusic.volume = 0.22;
+
+    function updateUnlockProgress() {
+      const progress = Number(unlockRange.value);
+      unlockRange.style.setProperty('--progress', `${progress}%`);
+
+      if (progress >= 96) {
+        unlockRange.value = 100;
+        unlockRange.style.setProperty('--progress', '100%');
+        unlockScreen.classList.add('is-hidden');
+        siteContent.classList.add('is-visible');
+        document.body.classList.remove('is-locked');
+        teamGrid.classList.add('is-revealing');
+        setTimeout(() => teamGrid.classList.remove('is-revealing'), 1800);
+        typeTitle();
+        backgroundMusic.play().catch(() => {});
+      }
+    }
+
+    unlockRange.addEventListener('input', updateUnlockProgress);
+
+    // Start everything when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        typeCode();
+        loadUsers();
+        // Auto-refresh every 10 seconds
+        setInterval(loadUsers, 10000);
+      });
+    } else {
+      typeCode();
+      loadUsers();
+      // Auto-refresh every 10 seconds
+      setInterval(loadUsers, 10000);
+    }
+  </script>
+</body>
+</html>

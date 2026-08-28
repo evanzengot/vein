@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "name": "Alex",
+    "customStatus": "Building cool stuff 24/7 🚀",
+    "status": "online",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/0.png"
+  },
+  {
+    "id": "2",
+    "name": "Sarah",
+    "customStatus": "Coffee -> Code -> Repeat ☕",
+    "status": "online",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/1.png"
+  },
+  {
+    "id": "3",
+    "name": "Jordan",
+    "customStatus": "AFK eating snacks 🍕",
+    "status": "idle",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/2.png"
+  },
+  {
+    "id": "4",
+    "name": "Morgan",
+    "customStatus": "Creating beautiful interfaces ✨",
+    "status": "online",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/3.png"
+  },
+  {
+    "id": "5",
+    "name": "Casey",
+    "customStatus": "Always learning new things 📚",
+    "status": "online",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/4.png"
+  },
+  {
+    "id": "6",
+    "name": "Phoenix",
+    "customStatus": "Leading the team forward 🏃",
+    "status": "dnd",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/5.png"
+  },
+  {
+    "id": "7",
+    "name": "Riley",
+    "customStatus": "Debugging is my middle name 🐛",
+    "status": "online",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/0.png"
+  },
+  {
+    "id": "8",
+    "name": "Avery",
+    "customStatus": "In the zone 🎧",
+    "status": "online",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/1.png"
+  }
+]
